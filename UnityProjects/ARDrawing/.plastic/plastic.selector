@@ -1,0 +1,4 @@
+repository "MRTKDevTemplate@a2504488720@cloud"
+  path "/"
+    br "/main"
+    co "/main"
