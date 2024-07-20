@@ -8,7 +8,7 @@ public class Vectorization : MonoBehaviour
 {
     public float minStep = 0.05f;
     public float minAngle = 5f;
-
+     
     public void Combine_Step(ref List<CursorData> data)
     {
         // Step 1: Regenerate by accumulating distance
@@ -81,6 +81,59 @@ public class Vectorization : MonoBehaviour
         }
     }
 
+    public void CatmullRomSplineSmooth(ref List<CursorData> data, int numPointsBetween = 1, float minDistance = 0.1f)
+    {
+        if (data.Count < 4)
+        {
+            throw new ArgumentException("Need at least four points for Catmull-Rom spline.");
+        }
+
+        List<CursorData> smoothedData = new List<CursorData>();
+
+        for (int i = 1; i < data.Count - 2; i++)
+        {
+            CursorData p0 = data[i - 1];
+            CursorData p1 = data[i];
+            CursorData p2 = data[i + 1];
+            CursorData p3 = data[i + 2];
+
+            smoothedData.Add(p1); // Add the original point
+
+            Vector3 lastPoint = p1.pointerPos;
+
+            for (int j = 1; j <= numPointsBetween; j++)
+            {
+                float t = j / (float)(numPointsBetween + 1);
+                Vector3 newPoint = CatmullRom(p0.pointerPos, p1.pointerPos, p2.pointerPos, p3.pointerPos, t);
+
+                if (Vector3.Distance(lastPoint, newPoint) >= minDistance)
+                {
+                    CursorData newCursor = new CursorData();
+                    newCursor.pointerPos = newPoint;
+                    smoothedData.Add(newCursor);
+                    lastPoint = newPoint;
+                }
+            }
+        }
+
+        smoothedData.Add(data[data.Count - 2]); // Add the second last point
+        smoothedData.Add(data[data.Count - 1]); // Add the last point
+
+        data = smoothedData;
+    }
+
+    private Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+    {
+        return 0.5f * (
+            (2f * p1) +
+            (-p0 + p2) * t +
+            (2f * p0 - 5f * p1 + 4f * p2 - p3) * t * t +
+            (-p0 + 3f * p1 - 3f * p2 + p3) * t * t * t
+        );
+    }
+
+
+
     public void Process(ref List<CursorData> data)
     {
         if (data == null || data.Count <= 1) return;
@@ -96,7 +149,8 @@ public class Vectorization : MonoBehaviour
                 {
                     Combine_Step(ref tmpData);
                     Combine_Angle(ref tmpData);
-                    Smooth(ref tmpData, 3);
+                    //Smooth(ref tmpData, 3);
+                    CatmullRomSplineSmooth(ref tmpData, 1, 0.1f);
                     for (int j = 0; j < tmpData.Count; ++j)
                     {
                         resultData.Add(tmpData[j]);
@@ -113,8 +167,9 @@ public class Vectorization : MonoBehaviour
         if (tmpData.Count > 0)
         {
             Combine_Step(ref tmpData);
-            Combine_Angle(ref tmpData);
-            Smooth(ref tmpData, 3);
+            //Smooth(ref tmpData, 3);
+            CatmullRomSplineSmooth(ref tmpData, 1, 0.1f);
+
             for (int j = 0; j < tmpData.Count; ++j)
             {
                 resultData.Add(tmpData[j]);
