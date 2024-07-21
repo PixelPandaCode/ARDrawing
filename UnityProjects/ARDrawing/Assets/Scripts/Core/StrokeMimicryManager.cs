@@ -81,8 +81,10 @@ namespace StrokeMimicry
                 return;
             }
             Instance = this;
+            PhongFilesPath = Application.streamingAssetsPath;
+#if UNITY_EDITOR
             PhongFilesPath = Application.dataPath + "/Models";
-            // PhongFilesPath = Application.streamingAssetsPath;
+#endif
             DontDestroyOnLoad(gameObject);
             StartTime = DateTime.Now;
         }

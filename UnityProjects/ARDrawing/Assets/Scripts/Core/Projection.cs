@@ -48,43 +48,44 @@ namespace StrokeMimicry
 
             set
             {
-                try
-                {
-                    _target = value;
-                    string surfMeshFile = System.IO.Path.Combine(
-                        StrokeMimicryManager.Instance.PhongFilesPath,
-                        _target.Name + ".obj");
+                _target = value;
+                //try
+                //{
+                //    _target = value;
+                //    string surfMeshFile = System.IO.Path.Combine(
+                //        StrokeMimicryManager.Instance.PhongFilesPath,
+                //        _target.Name + ".obj");
 
-                    if (!System.IO.File.Exists(surfMeshFile))
-                        Debug.LogError("Unable to find file " + surfMeshFile + ". This file is required for all projection functions. Perhaps you forgot to copy this file to " + StrokeMimicryManager.Instance.PhongFilesPath + " or the target model name is not set?");
+                //    if (!System.IO.File.Exists(surfMeshFile))
+                //        Debug.LogError("Unable to find file " + surfMeshFile + ". This file is required for all projection functions. Perhaps you forgot to copy this file to " + StrokeMimicryManager.Instance.PhongFilesPath + " or the target model name is not set?");
 
 
-                    StandardMeshReader surfMeshReader = new StandardMeshReader();
-                    surfMeshReader.MeshBuilder = new DMesh3Builder();
-                    var surfMeshReadResult = surfMeshReader.Read(surfMeshFile, new ReadOptions());
-                    Debug.Assert(surfMeshReadResult.code == IOCode.Ok, "Unable to read target surface mesh from " + surfMeshFile);
-                    SurfMesh = ((DMesh3Builder)surfMeshReader.MeshBuilder).Meshes[0];
+                //    StandardMeshReader surfMeshReader = new StandardMeshReader();
+                //    surfMeshReader.MeshBuilder = new DMesh3Builder();
+                //    var surfMeshReadResult = surfMeshReader.Read(surfMeshFile, new ReadOptions());
+                //    Debug.Assert(surfMeshReadResult.code == IOCode.Ok, "Unable to read target surface mesh from " + surfMeshFile);
+                //    SurfMesh = ((DMesh3Builder)surfMeshReader.MeshBuilder).Meshes[0];
 
-                    foreach (var vidx in SurfMesh.VertexIndices())
-                    {
-                        SurfMesh.SetVertex(vidx, StrokeMimicryUtils.ChangeHandedness((Vector3)SurfMesh.GetVertex(vidx)));
-                        SurfMesh.SetVertexNormal(vidx, StrokeMimicryUtils.ChangeHandedness(SurfMesh.GetVertexNormal(vidx)));
-                    }
+                //    foreach (var vidx in SurfMesh.VertexIndices())
+                //    {
+                //        SurfMesh.SetVertex(vidx, StrokeMimicryUtils.ChangeHandedness((Vector3)SurfMesh.GetVertex(vidx)));
+                //        SurfMesh.SetVertexNormal(vidx, StrokeMimicryUtils.ChangeHandedness(SurfMesh.GetVertexNormal(vidx)));
+                //    }
 
-                    SurfMeshTree = new DMeshAABBTree3(SurfMesh, true);
-                    // Debug.Assert(SurfMesh.IsClosed(), "Target surface mesh needs to be closed!");
-                    SurfMeshTree.FastWindingNumber(Vector3d.Zero);
+                //    SurfMeshTree = new DMeshAABBTree3(SurfMesh, true);
+                //    // Debug.Assert(SurfMesh.IsClosed(), "Target surface mesh needs to be closed!");
+                //    SurfMeshTree.FastWindingNumber(Vector3d.Zero);
 
-                    if (Target.Phong is null)
-                    {
-                        //Debug.LogWarning("Phong projection unavailable. Closest point queries will use vanilla version.");
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e.Message);
-                    _target = null;
-                }
+                //    if (Target.Phong is null)
+                //    {
+                //        //Debug.LogWarning("Phong projection unavailable. Closest point queries will use vanilla version.");
+                //    }
+                //}
+                //catch (Exception e)
+                //{
+                //    Debug.LogError(e.Message);
+                //    _target = null;
+                //}
             }
         }
 
@@ -150,15 +151,13 @@ namespace StrokeMimicry
                 PenObject.transform.up,
                 PenObject.transform.forward
                 );
-
-            var penTipGlobalPosition = CurrentDataFrame.PenPosition;
             var rotation = Quaternion.LookRotation(
                 CurrentDataFrame.ControllerForward,
                 CurrentDataFrame.ControllerUp);
 
             // Current spraypaint ray
             SprayRay = new Ray(
-                penTipGlobalPosition,
+                PenObject.PenTipPosition,
                 PenObject.SprayDirection
             );
             // Debug.Log("Pentip: " + penTipGlobalPosition + " SprayRay: " + SprayRay.direction);
@@ -167,7 +166,7 @@ namespace StrokeMimicry
             CurrentRay = SprayRay;
 
             // CurrentHit is the spraypaint raycast hit. May be updated by the Project() function.
-            _Raycast(CurrentRay, out CurrentHit);
+            Raycast(CurrentRay, out CurrentHit);
         }
 
         //// Action button was just pressed. Try creating a new stroke.
@@ -203,6 +202,10 @@ namespace StrokeMimicry
             CurrentCursor = Vector4.zero;
             CurrentCursor = Target.transform.TransformPoint(hitInfo.Point);
             CurrentCursor.w = hitInfo.Success ? 1 : 0;
+            if (hitInfo.Success)
+            {
+                Debug.Log(hitInfo.Point);
+            }
             //TP.UpdateCursor(mwp);
             return drawn;
         }
@@ -472,6 +475,27 @@ namespace StrokeMimicry
                 intr.TriangleBaryCoords);
 
             return true;
+        }
+
+        // Raycasting
+        private bool Raycast(Ray ray, out HitInfo hitInfo, float maxDist = Mathf.Infinity)
+        {
+            // assign current dataframe to hitinfo using default constructor
+            hitInfo = new HitInfo(CurrentDataFrame, Target.TargetTransform);
+
+            if (!IsReady)
+                return false;
+            RaycastHit hit = new RaycastHit();
+            if (Physics.Raycast(ray, out hit))
+            {
+                hitInfo.Success = true;
+                hitInfo.Point = Target.transform.InverseTransformPoint(hit.point);
+                hitInfo.Normal = hit.normal;
+                hitInfo.Distance = hit.distance;
+                return true;
+            }
+
+            return false;
         }
 
         // UI updates: Show/hide appropriate UI for draw/erase interactions

@@ -338,7 +338,11 @@ public class PaintableTexture
         byte[] bytes = texture.EncodeToJPG();
 
         // Write to a file in the project folder
+#if UNITY_EDITOR
         File.WriteAllBytes(Application.dataPath + "/Output/PaintedTexture" + id.ToString() + ".jpg", bytes);
+#else
+        File.WriteAllBytes(Application.persistentDataPath + "/Output/PaintedTexture" + id.ToString() + ".jpg", bytes);
+#endif
 
         // Clean up
         RenderTexture.active = null;

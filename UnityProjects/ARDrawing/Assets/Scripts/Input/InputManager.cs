@@ -95,6 +95,10 @@ namespace StrokeMimicry
             //UnityEngine.Debug.Log(Application.persistentDataPath);
             //UnityEngine.Debug.Log(Application.dataPath);
             //UnityEngine.Debug.Log(Application.streamingAssetsPath);
+
+#if UNITY_EDITOR
+            fixedDirection = new Vector3(-1, 2, 1).normalized * Screen.width * 0.2f;
+#endif
         }
 
         public void Start()
@@ -175,8 +179,10 @@ namespace StrokeMimicry
         public void ExportAction()
         {
             VectorAction();
-            string filePath = Application.dataPath + "/Output/CursorData.csv"; ;  // Set the path to your CSV file
-
+            string filePath = Application.persistentDataPath + "/Output/CursorData.csv"; // Set the path to your CSV file
+#if UNITY_EDITOR
+            filePath = Application.dataPath + "/Output/CursorData.csv";
+#endif
 
             // Using StreamWriter to write to a file
             using (StreamWriter writer = new StreamWriter(filePath))
@@ -224,20 +230,24 @@ namespace StrokeMimicry
 
         public void NextTaskAction()
         {
+            string outputRoot = Application.persistentDataPath;
+#if UNITY_EDITOR
+            outputRoot = Application.dataPath;
+#endif
             if (currentTaskIndex >= 4)
             {
                 ExportAction();
                 ResetAction();
-                MoveFileToAnotherDir(Application.dataPath + "/Output/CursorData.csv", Application.dataPath + "/Output/Task" + currentTaskIndex.ToString());
-                MoveFileToAnotherDir(Application.dataPath + "/Output/PaintedTexture_MainTex.jpg", Application.dataPath + "/Output/Task" + currentTaskIndex.ToString());
+                MoveFileToAnotherDir(outputRoot + "/Output/CursorData.csv", outputRoot + "/Output/Task" + currentTaskIndex.ToString());
+                MoveFileToAnotherDir(outputRoot + "/Output/PaintedTexture_MainTex.jpg", outputRoot + "/Output/Task" + currentTaskIndex.ToString());
                 return;
             }
             ExportAction();
             ResetAction();
             // Check if the GameObject was found
             ToggleReferenceByID(currentTaskIndex);
-            MoveFileToAnotherDir(Application.dataPath + "/Output/CursorData.csv", Application.dataPath + "/Output/Task" + currentTaskIndex.ToString());
-            MoveFileToAnotherDir(Application.dataPath + "/Output/PaintedTexture_MainTex.jpg", Application.dataPath + "/Output/Task" + currentTaskIndex.ToString());
+            MoveFileToAnotherDir(outputRoot + "/Output/CursorData.csv", outputRoot + "/Output/Task" + currentTaskIndex.ToString());
+            MoveFileToAnotherDir(outputRoot + "/Output/PaintedTexture_MainTex.jpg", outputRoot + "/Output/Task" + currentTaskIndex.ToString());
             currentTaskIndex += 1;
             if (currentTaskIndex == 3)
             {
