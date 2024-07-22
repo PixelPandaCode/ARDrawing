@@ -34,6 +34,12 @@ namespace StrokeMimicry
         public Projection projection;
         public List<GameObject> testReferences;
         public List<GameObject> testTargets;
+        public bool haveCursorAttached = false;
+        public GameObject PanelUI;
+        public List<CursorPointer> cursorPointers = new List<CursorPointer>();
+        public int currentTaskIndex = 1;
+        public MRTKRayInteractor interactor;
+        public MeshRenderer penRenderer;
 
         private HandsAggregatorSubsystem handsAggregatorSubsystem;
         private InputAction vectorAction;
@@ -44,12 +50,7 @@ namespace StrokeMimicry
         private InputAction penAction;
         private InputAction exportAction;
         private TexturePaint tp;
-        public Vector3 SprayDirection;
-        public bool haveCursorAttached = false;
-        public GameObject PanelUI;
-        public List<CursorPointer> cursorPointers = new List<CursorPointer>();
         private List<CursorData> cursorData = new List<CursorData>();
-        public int currentTaskIndex = 1;
         // This is only for drawing mode
         private List<Vector4> cursorVecList = new List<Vector4>(1);
         private Vector3 fixedDirection = new Vector3(-1, 2, 1).normalized * Screen.width * 0.5f;
@@ -66,7 +67,6 @@ namespace StrokeMimicry
             {
                 UnityEngine.Debug.LogError("No hand system");
             }
-            pen.SprayDirection = SprayDirection;
             
             vectorAction = new InputAction(binding: "<Keyboard>/v");
             vectorAction.performed += _ => VectorAction();
@@ -116,7 +116,6 @@ namespace StrokeMimicry
         public void Update()
         {
             bool rightHandIsValid = handsAggregatorSubsystem.TryGetPinchProgress(XRNode.RightHand, out bool rightIsReadyToPinch, out bool rightIsPinching, out float rightPinchAmount);
-            bool leftHandIsValid = handsAggregatorSubsystem.TryGetPinchProgress(XRNode.LeftHand, out bool leftIsReadyToPinch, out bool leftIsPinching, out float leftPinchAmount);
             if (rightHandIsValid)
             {
                 bool rightHandPinch = rightHandIsValid && rightIsPinching && rightPinchAmount >= 1.0f;
@@ -125,29 +124,17 @@ namespace StrokeMimicry
                 handsAggregatorSubsystem.TryGetJoint(TrackedHandJoint.Palm, XRNode.RightHand, out palmJointPose);
                 ActionButtonHandler(rightHandPinch);
             }
-            else if (leftHandIsValid)
-            {
-                bool leftHandPinch = leftHandIsValid && leftIsPinching && leftPinchAmount >= 1.0f;
-
-                handsAggregatorSubsystem.TryGetJoint(TrackedHandJoint.IndexTip, XRNode.LeftHand, out handJointPose);
-                handsAggregatorSubsystem.TryGetJoint(TrackedHandJoint.Palm, XRNode.LeftHand, out palmJointPose);
-                ActionButtonHandler(leftHandPinch);
-            }
-
 
             if (projection.Target != null)
             {
-                pen.PenTipPosition = palmJointPose.Position;
-                // Define the fixed direction in world space
+                pen.PenTipPosition = interactor.transform.position;
+                pen.SprayDirection = interactor.transform.forward;
 
-                // The spray direction is like a ray direction but it won't change after perspective
-                Vector3 pointOnScreen = Camera.main.WorldToScreenPoint(palmJointPose.Position);
-                pointOnScreen += fixedDirection; // Move the screen point in the desired direction
-                // Transform the moved screen point back to world space
-                Vector3 endPointInWorld = Camera.main.ScreenToWorldPoint(pointOnScreen);
-
-                // Return the direction from the start point to this new end point
-                pen.SprayDirection = (endPointInWorld - palmJointPose.Position).normalized;
+                //pen.PenTipPosition = palmJointPose.Position;
+                //Vector3 pointOnScreen = Camera.main.WorldToScreenPoint(palmJointPose.Position);
+                //pointOnScreen += fixedDirection;
+                //Vector3 endPointInWorld = Camera.main.ScreenToWorldPoint(pointOnScreen);
+                //pen.SprayDirection = (endPointInWorld - palmJointPose.Position).normalized;
 
                 //Vector3 cursorPosition;
                 //Vector3 cursorNormal;
@@ -159,9 +146,7 @@ namespace StrokeMimicry
                 //    pen.SprayDirection = cursorNormal;
                 //}
             }
-
-            // if not hit by ui then draw
-            if (!pen.UpdateUIPointerAndLaser(ActionButtonPressed))
+            if (!interactor.isOnUI)
             {
                 Draw();
             }
@@ -234,7 +219,7 @@ namespace StrokeMimicry
 #if UNITY_EDITOR
             outputRoot = Application.dataPath;
 #endif
-            if (currentTaskIndex >= 4)
+            if (currentTaskIndex >= testReferences.Count)
             {
                 ExportAction();
                 ResetAction();
@@ -249,14 +234,6 @@ namespace StrokeMimicry
             MoveFileToAnotherDir(outputRoot + "/Output/CursorData.csv", outputRoot + "/Output/Task" + currentTaskIndex.ToString());
             MoveFileToAnotherDir(outputRoot + "/Output/PaintedTexture_MainTex.jpg", outputRoot + "/Output/Task" + currentTaskIndex.ToString());
             currentTaskIndex += 1;
-            if (currentTaskIndex == 3)
-            {
-                ToggleTargetByID(1);
-                ToggleTargetByID(2);
-                projection.Target = FindObjectOfType<StrokeMimicryTarget>();
-                tp.Init();
-                tp.albedo.ClearCurLayer();
-            }
             ToggleReferenceByID(currentTaskIndex);
 
             ToggleAction();
@@ -332,14 +309,16 @@ namespace StrokeMimicry
             {
                 ResetAction();
                 StrokeMimicryManager.Instance.CurrentInteractionMode = InteractionMode.Tapline;
+                penRenderer.material.SetColor("_Base_Color_", Color.green);
             }
             else
             {
                 ResetAction();
                 StrokeMimicryManager.Instance.CurrentInteractionMode = InteractionMode.Drawing;
+                penRenderer.material.SetColor("_Base_Color_", Color.white);
             }
 
-            projection.TogglePenUI(StrokeMimicryManager.Instance.CurrentInteractionMode);
+            // projection.TogglePenUI(StrokeMimicryManager.Instance.CurrentInteractionMode);
         }
 
         public void ResetAction()
@@ -521,7 +500,7 @@ namespace StrokeMimicry
             tp.albedo.SetCursorData(cursorPointers);
 
             StrokeMimicryManager.Instance.CurrentInteractionMode = InteractionMode.Tapline;
-            projection.TogglePenUI(StrokeMimicryManager.Instance.CurrentInteractionMode);
+            penRenderer.material.SetColor("_Base_Color_", Color.green);
         }
 
         public void GenerateImageAction()

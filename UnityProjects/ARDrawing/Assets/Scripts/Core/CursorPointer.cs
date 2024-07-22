@@ -38,6 +38,10 @@ public class CursorPointer : MonoBehaviour
             inputManager.haveCursorAttached = true;
             isAttached = true;
         }
+        else
+        {
+            Debug.Log(col.gameObject.name);
+        }
     }
 
     private void OnTriggerExit(Collider col)

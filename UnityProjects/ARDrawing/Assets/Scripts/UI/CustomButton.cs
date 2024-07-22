@@ -1,10 +1,12 @@
+using MixedReality.Toolkit;
 using StrokeMimicry;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.XR.Interaction.Toolkit;
 
-public class CustomButton : MonoBehaviour
+public class CustomButton : StatefulInteractable
 {
     public Color normalColor;
     public Color hoverColor;
@@ -21,7 +23,7 @@ public class CustomButton : MonoBehaviour
     {
         gameObject.tag = "UI";
         gameObject.layer = LayerMask.NameToLayer("UI");
-        gameObject.GetComponent<Renderer>().material.color = normalColor;
+        // gameObject.GetComponent<Renderer>().material.color = normalColor;
         receiver = FindObjectOfType<InputManager>().gameObject;
     }
 
@@ -42,19 +44,21 @@ public class CustomButton : MonoBehaviour
 
     public void Hover()
     {
-        gameObject.GetComponent<Renderer>().material.color = hoverColor;
+        // gameObject.GetComponent<Renderer>().material.color = hoverColor;
         actioned = false;
+        HoverEnterEventArgs args = new HoverEnterEventArgs();
+        hoverEntered.Invoke(args);
     }
 
     public void Press()
     {
-        gameObject.GetComponent<Renderer>().material.color = pressColor;
+        // gameObject.GetComponent<Renderer>().material.color = pressColor;
         Action();
     }
 
     public void Leave()
     {
-        gameObject.GetComponent <Renderer>().material.color = normalColor;
+        // gameObject.GetComponent <Renderer>().material.color = normalColor;
         actioned = false;
     }
 }

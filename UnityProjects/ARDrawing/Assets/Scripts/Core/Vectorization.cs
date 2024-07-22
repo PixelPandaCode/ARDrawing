@@ -149,8 +149,8 @@ public class Vectorization : MonoBehaviour
                 {
                     Combine_Step(ref tmpData);
                     Combine_Angle(ref tmpData);
-                    //Smooth(ref tmpData, 3);
-                    CatmullRomSplineSmooth(ref tmpData, 1, 0.1f);
+                    Smooth(ref tmpData, 3);
+                    // CatmullRomSplineSmooth(ref tmpData, 1, 0.1f);
                     for (int j = 0; j < tmpData.Count; ++j)
                     {
                         resultData.Add(tmpData[j]);
@@ -167,8 +167,8 @@ public class Vectorization : MonoBehaviour
         if (tmpData.Count > 0)
         {
             Combine_Step(ref tmpData);
-            //Smooth(ref tmpData, 3);
-            CatmullRomSplineSmooth(ref tmpData, 1, 0.1f);
+            Smooth(ref tmpData, 3);
+            // CatmullRomSplineSmooth(ref tmpData, 1, 0.1f);
 
             for (int j = 0; j < tmpData.Count; ++j)
             {

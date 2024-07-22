@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using MixedReality.Toolkit.Subsystems;
 using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
@@ -30,6 +31,7 @@ namespace MixedReality.Toolkit.Input
     {
         #region MRTKRayInteractor
 
+        public bool isOnUI = false;
         /// <summary>
         /// Is this ray currently hovering a UnityUI/Canvas element?
         /// </summary>
@@ -86,6 +88,7 @@ namespace MixedReality.Toolkit.Input
         /// <inheritdoc />
         public float SelectProgress => xrController.selectInteractionState.value;
 
+
         #endregion IVariableSelectInteractor
 
         #region XRBaseInteractor
@@ -93,6 +96,14 @@ namespace MixedReality.Toolkit.Input
         /// <inheritdoc />
         public override bool CanHover(IXRHoverInteractable interactable)
         {
+            if (interactable.interactionLayers.value == 1)
+            {
+                isOnUI = true;
+            }
+            else
+            {
+                isOnUI = false;
+            }
             // We stay hovering if we have selected anything.
             bool stickyHover = hasSelection && IsSelecting(interactable);
             if (stickyHover)
@@ -118,6 +129,10 @@ namespace MixedReality.Toolkit.Input
         /// <inheritdoc />
         public override bool CanSelect(IXRSelectInteractable interactable)
         {
+            if (interactable.interactionLayers.value != 1)
+            {
+                return false;
+            }
             return base.CanSelect(interactable) && (!hasSelection || IsSelecting(interactable)) && isRelaxedBeforeSelect;
         }
 
@@ -236,16 +251,30 @@ namespace MixedReality.Toolkit.Input
             // Use Pose Sources to calculate the interactor's pose and the attach transform's position
             // We have to make sure the ray interactor is oriented appropriately before calling
             // lower level raycasts
+            //if (AimPoseSource != null && AimPoseSource.TryGetPose(out Pose aimPose))
+            //{
+            //    transform.SetPositionAndRotation(aimPose.position, aimPose.rotation);
+
+            //    if (hasSelection)
+            //    {
+            //        float distanceRatio = PoseUtilities.GetDistanceToBody(aimPose) / refDistance;
+            //        attachTransform.localPosition = new Vector3(initialLocalAttach.position.x, initialLocalAttach.position.y, initialLocalAttach.position.z * distanceRatio);
+            //    }
+            //}
+
+            Vector3 fixedDirection = new Vector3(-1, 2, 1).normalized * Screen.width * 0.5f;
+#if UNITY_EDITOR
+            fixedDirection = new Vector3(-1, 2, 1).normalized * Screen.width * 0.2f;
+#endif
             if (AimPoseSource != null && AimPoseSource.TryGetPose(out Pose aimPose))
             {
-                transform.SetPositionAndRotation(aimPose.position, aimPose.rotation);
-
-                if (hasSelection)
-                {
-                    float distanceRatio = PoseUtilities.GetDistanceToBody(aimPose) / refDistance;
-                    attachTransform.localPosition = new Vector3(initialLocalAttach.position.x, initialLocalAttach.position.y, initialLocalAttach.position.z * distanceRatio);
-                }
+                transform.position = aimPose.position;
+                Vector3 pointOnScreen = Camera.main.WorldToScreenPoint(aimPose.position);
+                pointOnScreen += fixedDirection;
+                Vector3 endPointInWorld = Camera.main.ScreenToWorldPoint(pointOnScreen);
+                transform.rotation = Quaternion.LookRotation((endPointInWorld - aimPose.position).normalized);
             }
+
 
             // Use the Device Pose Sources to calculate the attach transform's pose
             if (DevicePoseSource != null && DevicePoseSource.TryGetPose(out Pose devicePose))

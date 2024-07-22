@@ -202,10 +202,6 @@ namespace StrokeMimicry
             CurrentCursor = Vector4.zero;
             CurrentCursor = Target.transform.TransformPoint(hitInfo.Point);
             CurrentCursor.w = hitInfo.Success ? 1 : 0;
-            if (hitInfo.Success)
-            {
-                Debug.Log(hitInfo.Point);
-            }
             //TP.UpdateCursor(mwp);
             return drawn;
         }
