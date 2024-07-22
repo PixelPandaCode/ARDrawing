@@ -151,12 +151,6 @@ public class TexturePaint : MonoBehaviour {
     // ======================================================================================================================
     // HELPER FUNCTIONS ---------------------------------------------------------------------------
 
-    public string CaptureAlbedo()
-    {
-        albedo.CaptureToJPG();
-        return albedo.id;
-    }
-
     public void RenderAlbedoBySprite(Sprite sprite)
     {
         albedo.RemoveCommandBuffer();
@@ -322,7 +316,7 @@ public class PaintableTexture
         mDrawMesh.SetMatrix("mesh_Object2World", localToWorld); 
     }
 
-    public void CaptureToJPG()
+    public void CaptureToJPG(string filePath)
     {
         // Create a new Texture2D with the same dimensions as the render texture
         Texture2D texture = new Texture2D(runTimeTexture.width, runTimeTexture.height, TextureFormat.RGB565, false);
@@ -338,11 +332,7 @@ public class PaintableTexture
         byte[] bytes = texture.EncodeToJPG();
 
         // Write to a file in the project folder
-#if UNITY_EDITOR
-        File.WriteAllBytes(Application.dataPath + "/Output/PaintedTexture" + id.ToString() + ".jpg", bytes);
-#else
-        File.WriteAllBytes(Application.persistentDataPath + "/Output/PaintedTexture" + id.ToString() + ".jpg", bytes);
-#endif
+        File.WriteAllBytes(filePath, bytes);
 
         // Clean up
         RenderTexture.active = null;

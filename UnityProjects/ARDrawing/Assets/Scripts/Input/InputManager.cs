@@ -13,6 +13,8 @@ using UnityEngine.XR.ARFoundation;
 using System.Reflection;
 using UnityEngine.UIElements;
 using UnityEditor;
+using TMPro;
+using System;
 
 // Function：packaging, github,  ui，smooth, annotation, line quality
 
@@ -161,30 +163,6 @@ namespace StrokeMimicry
             }
         }
 
-        public void ExportAction()
-        {
-            VectorAction();
-            string filePath = Application.persistentDataPath + "/Output/CursorData.csv"; // Set the path to your CSV file
-#if UNITY_EDITOR
-            filePath = Application.dataPath + "/Output/CursorData.csv";
-#endif
-
-            // Using StreamWriter to write to a file
-            using (StreamWriter writer = new StreamWriter(filePath))
-            {
-                writer.WriteLine("Index,PointerPosX,PointerPosY,PointerPosZ");  // Writing the header
-
-                // Loop through each cursor pointer and write its position to the file
-                for (int i = 0; i < cursorPointers.Count; ++i)
-                {
-                    UnityEngine.Vector3 pos = cursorPointers[i].cursorData.pointerPos;  // Get the position
-                    pos = projection.Target.transform.TransformPoint(pos);
-                    writer.WriteLine($"{i},{pos.x},{pos.y},{pos.z}");  // Write the index and position to the file
-                }
-            }
-            GenerateImageAction();
-        }
-
         public bool TryGetCursorHoverInfo(MRTKBaseInteractable baseInteractable, out Vector3 cursorPosition, out Vector3 cursorNormal, out Vector3 rayDirection, out Vector3 cursorOrigin)
         {
             cursorPosition = Vector3.zero;
@@ -213,27 +191,59 @@ namespace StrokeMimicry
             return false;
         }
 
+
+        public void ExportAction()
+        {
+            string outputRoot = Application.persistentDataPath;
+#if UNITY_EDITOR
+            outputRoot = Application.dataPath;
+#endif
+            string outputDir = outputRoot + "/Output/Task" + currentTaskIndex.ToString() + "_" + DateTime.Now.ToString("MMddHHmm");
+            // Ensure the destination directory exists, create if it doesn't
+            if (!Directory.Exists(outputDir))
+            {
+                Directory.CreateDirectory(outputDir);
+            }
+            WriteCursorData(outputDir + "/CursorData_Before.csv");
+            GenerateImageAction(outputDir + "/Texture_Before.jpg");
+
+
+            VectorAction();
+            WriteCursorData(outputDir + "/CursorData.csv");
+            GenerateImageAction(outputDir + "/Texture.jpg");
+        }
+
+        public void WriteCursorData(string filePath)
+        {
+            // Using StreamWriter to write to a file
+            using (StreamWriter writer = new StreamWriter(filePath))
+            {
+                writer.WriteLine("Index,PointerPosX,PointerPosY,PointerPosZ");  // Writing the header
+
+                // Loop through each cursor pointer and write its position to the file
+                for (int i = 0; i < cursorData.Count; ++i)
+                {
+                    UnityEngine.Vector3 pos = cursorData[i].pointerPos;  // Get the position
+                    pos = projection.Target.transform.TransformPoint(pos);
+                    writer.WriteLine($"{i},{pos.x},{pos.y},{pos.z}");  // Write the index and position to the file
+                }
+            }
+        }
+
         public void NextTaskAction()
         {
             string outputRoot = Application.persistentDataPath;
 #if UNITY_EDITOR
             outputRoot = Application.dataPath;
 #endif
-            if (currentTaskIndex >= testReferences.Count)
-            {
-                ExportAction();
-                ResetAction();
-                MoveFileToAnotherDir(outputRoot + "/Output/CursorData.csv", outputRoot + "/Output/Task" + currentTaskIndex.ToString());
-                MoveFileToAnotherDir(outputRoot + "/Output/PaintedTexture_MainTex.jpg", outputRoot + "/Output/Task" + currentTaskIndex.ToString());
-                return;
-            }
             ExportAction();
             ResetAction();
             // Check if the GameObject was found
             ToggleReferenceByID(currentTaskIndex);
-            MoveFileToAnotherDir(outputRoot + "/Output/CursorData.csv", outputRoot + "/Output/Task" + currentTaskIndex.ToString());
-            MoveFileToAnotherDir(outputRoot + "/Output/PaintedTexture_MainTex.jpg", outputRoot + "/Output/Task" + currentTaskIndex.ToString());
-            currentTaskIndex += 1;
+            if (currentTaskIndex < testReferences.Count)
+            {
+                currentTaskIndex += 1;
+            }
             ToggleReferenceByID(currentTaskIndex);
 
             ToggleAction();
@@ -503,14 +513,14 @@ namespace StrokeMimicry
             penRenderer.material.SetColor("_Base_Color_", Color.green);
         }
 
-        public void GenerateImageAction()
+        public void GenerateImageAction(string filePath)
         {
             if (tp == null)
             {
                 return;
             }
             projection.CurrentCursor = Vector4.zero;
-            string albedoID = tp.CaptureAlbedo();
+            tp.albedo.CaptureToJPG(filePath);
         }
 
         public void UpperLayerAction()

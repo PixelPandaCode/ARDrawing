@@ -484,7 +484,7 @@ namespace StrokeMimicry
             RaycastHit hit = new RaycastHit();
             if (Physics.Raycast(ray, out hit, maxDist, 1))
             {
-                hitInfo.Success = true;
+                 hitInfo.Success = true;
                 hitInfo.Point = Target.transform.InverseTransformPoint(hit.point);
                 hitInfo.Normal = hit.normal;
                 hitInfo.Distance = hit.distance;
