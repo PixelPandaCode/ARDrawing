@@ -5,6 +5,7 @@ using ExtensionMethods;
 using System.Collections.Generic;
 using System.Drawing;
 using UnityEngine.InputSystem;
+using MixedReality.Toolkit.Input;
 
 namespace StrokeMimicry
 {
@@ -94,7 +95,6 @@ namespace StrokeMimicry
         // Projected stroke points. Strictly speaking, this information is redundant.
         public List<Vector3> Points { get; private set; }
         public int PointCount { get { return Points.Count; } }
-
 
         // Pen object, typically attached to a VR controller.
         private Pen _penObject;
@@ -482,7 +482,7 @@ namespace StrokeMimicry
             if (!IsReady)
                 return false;
             RaycastHit hit = new RaycastHit();
-            if (Physics.Raycast(ray, out hit))
+            if (Physics.Raycast(ray, out hit, maxDist, 1))
             {
                 hitInfo.Success = true;
                 hitInfo.Point = Target.transform.InverseTransformPoint(hit.point);

@@ -72,8 +72,6 @@ namespace StrokeMimicry
 
         public void UpdatePointerAndLaser(Ray ray, HitInfo hit, Transform targetTransform)
         {
-            laserRenderer.enabled = ShowProjectionPointer;
-            pointerRenderer.enabled = ShowProjectionPointer;
             if (hit.Success)
             {
                 // hit point in local coordinates of the controller, that is, of `this.gameObject`
