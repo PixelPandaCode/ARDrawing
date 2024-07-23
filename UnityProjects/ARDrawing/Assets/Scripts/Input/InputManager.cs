@@ -16,8 +16,6 @@ using UnityEditor;
 using TMPro;
 using System;
 
-// Function：packaging, github,  ui，smooth, annotation, line quality
-
 namespace StrokeMimicry
 {
     // InputManager processes all low-level input events and passes on high level information to the projection and UI scripts.
@@ -59,7 +57,7 @@ namespace StrokeMimicry
         private HandJointPose handJointPose = new HandJointPose();
         private HandJointPose palmJointPose = new HandJointPose();
         private bool isUIEnabled = false;
-
+        public TextMeshProUGUI textMesh;
 
         public void Awake()
         {
@@ -151,6 +149,40 @@ namespace StrokeMimicry
             if (!interactor.isOnUI)
             {
                 Draw();
+            }
+
+            if (textMesh)
+            {
+                string display = "DrawMode:";
+                if (StrokeMimicryManager.Instance.CurrentInteractionMode == InteractionMode.Drawing)
+                {
+                    display += "Drawing";
+                }
+                else
+                {
+                    display += "Tapline";
+                }
+                display += "\n";
+
+                display += "Brush Size:" + Math.Round(tp.BrushSize * 100.0f).ToString();
+                display += "\n";
+
+                display += "Brush Color:";
+                if (tp.BrushColor == Color.red)
+                {
+                    display += "red";
+                }
+                else if (tp.BrushColor == Color.black)
+                {
+                    display += "black";
+                }
+                else if (tp.BrushColor == Color.blue)
+                {
+                    display += "blue";
+                }
+                display += "\n";
+
+                textMesh.text = display;
             }
         }
 
@@ -567,14 +599,14 @@ namespace StrokeMimicry
         {
             cursorVecList.Clear();
             tp.albedo.SetCursorData(cursorVecList);
-            tp.SetBrushSize(tp.BrushSize + 0.05f);
+            tp.SetBrushSize(tp.BrushSize + 0.01f);
         }
 
         public void SmallerBrushAction()
         {
-            if (tp.BrushSize > 0.1f)
+            if (tp.BrushSize > 0.01f)
             {
-                tp.SetBrushSize(tp.BrushSize - 0.05f);
+                tp.SetBrushSize(tp.BrushSize - 0.01f);
             }
         }
 
@@ -588,7 +620,11 @@ namespace StrokeMimicry
             }
             else if (tp.BrushColor == Color.black)
             {
-                tp.SetBrushColor(Color.red);
+                tp.SetBrushColor(Color.blue);
+            }
+            else if (tp.BrushColor == Color.blue)
+            {
+                tp.BrushColor = Color.red;
             }
         }
     }
