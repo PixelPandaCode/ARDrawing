@@ -35,8 +35,8 @@ namespace StrokeMimicry
         public GameObject pointer;
         public GameObject laser;
 
-        private MeshRenderer pointerRenderer = null;
         private MeshRenderer laserRenderer = null;
+        private MeshRenderer pointerRenderer = null;
 
         private CustomButton currentButton = null;
 
