@@ -574,21 +574,6 @@ namespace StrokeMimicry
             tp.LowerLayerAction();
         }
 
-        public void EraseAction()
-        {
-            //Projection.CurrentCursor = Vector4.positiveInfinity;
-            //tp.SetBrushColor(Color.white);
-
-            for (int i = 0; i < cursorPointers.Count; ++i)
-            {
-                Destroy(cursorPointers[i].gameObject);
-            }
-            cursorPointers.Clear();
-            cursorData.Clear();
-            tp.albedo.ClearCurLayer();
-            tp.albedo.SetCursorData(cursorPointers);
-        }
-
         public void PenAction()
         {
             tp.SetBrushColor(Color.red);
@@ -607,6 +592,21 @@ namespace StrokeMimicry
             {
                 tp.SetBrushSize(tp.BrushSize - 0.01f);
             }
+        }
+
+        public void EraseAction()
+        {
+            //Projection.CurrentCursor = Vector4.positiveInfinity;
+            //tp.SetBrushColor(Color.white);
+
+            for (int i = 0; i < cursorPointers.Count; ++i)
+            {
+                Destroy(cursorPointers[i].gameObject);
+            }
+            cursorPointers.Clear();
+            cursorData.Clear();
+            tp.albedo.ClearCurLayer();
+            tp.albedo.SetCursorData(cursorPointers);
         }
 
         public void ChangeColorAction()
