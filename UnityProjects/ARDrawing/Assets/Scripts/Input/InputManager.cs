@@ -153,7 +153,7 @@ namespace StrokeMimicry
 
             if (textMesh)
             {
-                string display = "DrawMode:";
+                string display = "Tools\nDrawMode: ";
                 if (StrokeMimicryManager.Instance.CurrentInteractionMode == InteractionMode.Drawing)
                 {
                     display += "Drawing";
@@ -164,10 +164,10 @@ namespace StrokeMimicry
                 }
                 display += "\n";
 
-                display += "Brush Size:" + Math.Round(tp.BrushSize * 100.0f).ToString();
-                display += "\n";
+                display += "Brush Size: " + Math.Round(tp.BrushSize * 100.0f).ToString();
+                display += "  ";
 
-                display += "Brush Color:";
+                display += "Color: ";
                 if (tp.BrushColor == Color.red)
                 {
                     display += "red";
@@ -180,7 +180,6 @@ namespace StrokeMimicry
                 {
                     display += "blue";
                 }
-                display += "\n";
 
                 textMesh.text = display;
             }

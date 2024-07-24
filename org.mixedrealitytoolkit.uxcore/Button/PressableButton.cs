@@ -149,6 +149,10 @@ namespace MixedReality.Toolkit.UX
         [Tooltip("Speed for extending the moving button visuals when selected by a non-touch source.")]
         private float extendSpeed = 0.5f;
 
+
+        // Added by ding to manually invode OnClicked
+        private bool ManullyClicked = false;
+
         /// <summary>
         /// Is this object in proximity of an active Interactor?
         /// </summary>
@@ -448,6 +452,16 @@ namespace MixedReality.Toolkit.UX
                     {
                         // Otherwise, we set the value to the actual pressProgress for maximum responsiveness.
                         selectionProgress = totalPressProgress;
+                        if (selectionProgress < 0.1)
+                        {
+                            ManullyClicked = false;
+                        }
+
+                        if (selectionProgress > 1 - selectionProgressEpsilon && !ManullyClicked)
+                        {
+                            OnClicked.Invoke();
+                            ManullyClicked = true;
+                        }
                     }
                 }
             }

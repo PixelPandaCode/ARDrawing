@@ -65,7 +65,7 @@ namespace MixedReality.Toolkit.Input
         /// Larger than the relaxation threshold on <see cref="GazePinchInteractor"/>, as fewer
         /// accidental activations will occur with rays.
         /// </remarks>
-        protected internal float relaxationThreshold = 0.5f;
+        protected internal float relaxationThreshold = 0.8f;
 
         // Whether the hand has relaxed (i.e. fully unselected) pre-selection.
         // Used to prevent accidental activations by requiring a full selection motion to complete.
@@ -129,10 +129,11 @@ namespace MixedReality.Toolkit.Input
         /// <inheritdoc />
         public override bool CanSelect(IXRSelectInteractable interactable)
         {
-            if (interactable.interactionLayers.value != 1)
-            {
-                return false;
-            }
+            return false;
+            //if (interactable.interactionLayers.value != 1)
+            //{
+            //    return false;
+            //}
             return base.CanSelect(interactable) && (!hasSelection || IsSelecting(interactable)) && isRelaxedBeforeSelect;
         }
 
@@ -253,7 +254,7 @@ namespace MixedReality.Toolkit.Input
             // lower level raycasts
             //if (AimPoseSource != null && AimPoseSource.TryGetPose(out Pose aimPose))
             //{
-            //    transform.SetPositionAndRotation(aimPose.position, aimPose.rotation);
+            //    // transform.SetPositionAndRotation(aimPose.position, aimPose.rotation);
 
             //    if (hasSelection)
             //    {
@@ -273,6 +274,11 @@ namespace MixedReality.Toolkit.Input
                 pointOnScreen += fixedDirection;
                 Vector3 endPointInWorld = Camera.main.ScreenToWorldPoint(pointOnScreen);
                 transform.rotation = Quaternion.LookRotation((endPointInWorld - aimPose.position).normalized);
+                if (hasSelection)
+                {
+                    float distanceRatio = PoseUtilities.GetDistanceToBody(aimPose) / refDistance;
+                    attachTransform.localPosition = new Vector3(initialLocalAttach.position.x, initialLocalAttach.position.y, initialLocalAttach.position.z * distanceRatio);
+                }
             }
 
 
