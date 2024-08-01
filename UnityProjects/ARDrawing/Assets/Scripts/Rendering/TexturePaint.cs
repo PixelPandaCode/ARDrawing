@@ -150,7 +150,6 @@ public class TexturePaint : MonoBehaviour {
 
     // ======================================================================================================================
     // HELPER FUNCTIONS ---------------------------------------------------------------------------
-
     public void RenderAlbedoBySprite(Sprite sprite)
     {
         albedo.RemoveCommandBuffer();

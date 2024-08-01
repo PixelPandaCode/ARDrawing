@@ -180,7 +180,7 @@ namespace StrokeMimicry
                 {
                     display += "blue";
                 }
-
+                //display += "\nModel Scale: " + projection.Target.transform.localScale * 2;
                 textMesh.text = display;
             }
         }
@@ -222,6 +222,21 @@ namespace StrokeMimicry
             return false;
         }
 
+        public void ScaleUpAction()
+        {
+            if (projection.Target)
+            {
+                projection.Target.transform.localScale += Vector3.one * 0.1f;
+            }
+        }
+
+        public void ScaleDownAction()
+        {
+            if (projection.Target)
+            {
+                projection.Target.transform.localScale -= Vector3.one * 0.1f;
+            }
+        }
 
         public void ExportAction()
         {
@@ -373,6 +388,10 @@ namespace StrokeMimicry
             cursorVecList.Clear();
             tp.albedo.ClearCurLayer();
             tp.albedo.SetCursorData(cursorPointers);
+            if (projection.Target)
+            {
+                projection.Target.transform.localScale = Vector3.one * 0.5f;
+            }
         }
 
 

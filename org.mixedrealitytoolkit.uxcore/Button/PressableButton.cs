@@ -457,7 +457,7 @@ namespace MixedReality.Toolkit.UX
                             ManullyClicked = false;
                         }
 
-                        if (selectionProgress > 1 - selectionProgressEpsilon && !ManullyClicked)
+                        if (selectionProgress > 0.9 && !ManullyClicked)
                         {
                             OnClicked.Invoke();
                             ManullyClicked = true;

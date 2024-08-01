@@ -263,9 +263,9 @@ namespace MixedReality.Toolkit.Input
             //    }
             //}
 
-            Vector3 fixedDirection = new Vector3(-1, 2, 1).normalized * Screen.width * 0.5f;
+            Vector3 fixedDirection = new Vector3(-1, 2, 2).normalized * Screen.width * 0.5f;
 #if UNITY_EDITOR
-            fixedDirection = new Vector3(-1, 2, 1).normalized * Screen.width * 0.2f;
+            fixedDirection = new Vector3(-1, 2, 2).normalized * Screen.width * 0.2f;
 #endif
             if (AimPoseSource != null && AimPoseSource.TryGetPose(out Pose aimPose))
             {
